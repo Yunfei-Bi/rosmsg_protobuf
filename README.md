@@ -1,40 +1,12 @@
-**如果我在cmakelists中也指定了install()的路径，那么最终哪个路径会生效？
-cmakelists中的install()还是 -DCMAKE_INSTALL_PREFIX**
+## my-ros-protobuf
 
-CMake 中 install() 与 -DCMAKE_INSTALL_PREFIX 的优先级关系
-这是一个常见的 CMake 配置问题。当你在 CMakeLists.txt 中使用 install() 命令指定路径，同时又通过 -DCMAKE_INSTALL_PREFIX 参数设置安装前缀时，两者会协同工作，而非互相覆盖。
+my-ros-protobuf-bridge是一个基于ros和protobuf的桥接项目，旨在实现ros消息和protobuf消息之间的兼容和互操作性
 
-**执行机制**
-- -DCMAKE_INSTALL_PREFIX 的作用
-- - 设置全局安装前缀（base directory），默认值为 /usr/local。
-- - 所有 install() 命令的相对路径都会**基于这个前缀展开**。
+- **兼容性和可扩展性**：基于C++模板编程中的**SFINAE**机制，修改了**roscpp**的核心库**roscpp_serialization**和**roscpp_traits**的底层代码。这样，**ros-protobuf-bridge可以同时兼容ROS原生msg和Protobuf消息**
+- **项目管理和构建**：使用**cmake**作为项目的构建系统，编写proto测试文件生成相应的**静态库**，供ros自定义功能模块调用。简化了项目的管理和构建过程，并提供灵活的扩展机制，便于后续添加复杂数据类型
+- **插件化设计**：**ros-protobuf-bridge**可以作为一个插件迁入到各种复杂的ROS功能项目中。通过将该项目中的cmake指令集成到目标项目中，可以轻松地实现基于proto数据的发布和订阅
+- **构建环境自动化**：使用**docker**构建整个项目环境，通过**dockerfile**安装**ROS-Noetic**组件，**protobuf**，**cmake**等依赖项，同时使用**shell**脚本编写第三方库源码安装和容器操作脚本，以实现项目构建流程的自动化和部署的便利性。
 
-- install() 命令的路径格式
-- - 支持绝对路径和相对路径：
-```cmake
-# 相对路径（相对于 CMAKE_INSTALL_PREFIX）
-install(TARGETS mylib DESTINATION lib)  # 安装到 ${CMAKE_INSTALL_PREFIX}/lib
+项目流程示意图：
 
-# 绝对路径（忽略 CMAKE_INSTALL_PREFIX）
-install(FILES config.txt DESTINATION /etc/myapp)  # 直接安装到 /etc/myapp
-```
-**优先级规则**
-- 相对路径：install() 的路径**会被追加到** CMAKE_INSTALL_PREFIX 后面。
-例如：
-```cmake
-# CMakeLists.txt
-install(TARGETS mylib DESTINATION lib)  # 相对路径
-
-# 命令行
-cmake .. -DCMAKE_INSTALL_PREFIX=/opt/myapp
-→ 实际安装路径：/opt/myapp/lib
-```
-- 绝对路径：install() 的路径会**直接覆盖** CMAKE_INSTALL_PREFIX。
-例如：
-```cmake
-# CMakeLists.txt
-install(TARGETS mylib DESTINATION /usr/lib)  # 绝对路径
-
-# 命令行
-cmake .. -DCMAKE_INSTALL_PREFIX=/opt/myapp  # 此设置被忽略
-```
+![img](./img/ros_protobuf流程图.png)

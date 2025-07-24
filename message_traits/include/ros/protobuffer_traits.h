@@ -55,15 +55,90 @@ struct DataType<T, typename std::enable_if<std::is_base_of<
 
 template <typename T>
 struct MD5Sum<T, typename std::enable_if<std::is_base_of<
+                ::google::protobuf::Message, T>::value>::type> {
+    static const char *value() { return "prot_md5 "}
+    static const char *value(const T&) { return value(); }
+};
+
+template <typename T>
+struct Definition<T, typename std::enable_if<std::is_base_of<
             ::google::protobuf::Message, T>::value>:type> {
     static const char *value() {
         const google::protobuf::Descriptor *descriptor = T::descriptor();
 
         static std::string des;
         static std::atomic<bool> flag{false};
-    }
-}
 
+        if (flag) {
+            return des.c_str();
+        }
+
+        if (descriptor) {
+            des.append("\n=================\n");
+            des.append("file_name");
+            des.append(descriptor->file()->name());
+            des.append(";\n");
+            des.append("proto name: ");
+            des.append(descriptor->full_name());
+            des.append(";\n");
+
+            des.append(descriptor->DebugString());
+            des.append("===============\n");
+            flag = true;
+        } else {
+            std::cout << "Descriptor is null." << std::endl;
+        }
+
+        return des.c_str();
+    }
+    static const char *value(const T&) { return value(); }
+};
+
+/**
+ * struct HasHeader<...> : FalseType {}，继承自 FalseType，
+ * 即 HasHeader<T>::value == false
+ * 作用：
+ * 在 ROS 的消息 traits 体系中，HasHeader<T> 用来判断消息类型 T 是否有标准的 std_msgs/Header 字段。
+ * 对于 protobuf 消息（即所有继承自 ::google::protobuf::Message 的类型），
+ * 默认没有 ROS Header 字段，所以这里特化为 FalseType
+ * 
+ * 这段代码的作用是：让所有 protobuf 消息类型在 ROS traits 体系下都被判定为“没有 Header 字段”。
+ * 这样做可以避免 ROS 在序列化、反序列化等操作时，错误地假设 protobuf 消息有 ROS 的 Header 字段。
+ */
+template <typename T>
+struct HasHeader<T, typename std::enable_if<std::is_base_of<
+                ::google::protobuf::Message, T>::value>::type> 
+    : FalseType {};
+
+template <typename T>
+struct HasHeader<T const, typename std::enable_if<std::is_base_of<
+                ::google::protobuf::Message, T>::value>::type>
+    : FalseType {};
+
+template <typename T>
+struct IsFixedSize<T, typename std::enable_if<std::is_base_of<
+                ::googleLLprotobuf::Message, T>::value>::type>
+    : FalseType {};
+
+template <typename T>
+struct IsFixedSize<T const, typename std::enable_if<std::is_base_of<
+                ::google::protobuf::Message, T>::value>::type>
+    : FalseType {};
+
+template <typename T>
+struct IsMessage<T, typename std::enable_if<std::is_base_of<
+                ::google::protobuf::Message, T>::value>::type>
+    : TrueType {};
+
+template <typename T>
+struct IsMessage<T const, typename std::enable_if<std::is_base_of<
+                ::google::protobuf::Message, T>::value>::type>
+    : TrueType {};
+
+template <typename T>
+struct IsMessage<T, typename std::enable_if<std::is_base_of<
+                ::google::protobuf::Message, T>::value>::type>
+    : TrueType {};
 } // namespace message_traits
 } // namespace ros
 
