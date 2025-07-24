@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<package>
+  <name>myproject</name>
+  <version>0.0.0</version>
+  <description>proto sample package</description>
+  <maintainer email="2277241439.com">Yunfei-Bi</maintainer>
+  <license>Yunfei-Bi license</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <run_depend>roscpp</run_depend>
+</package>
